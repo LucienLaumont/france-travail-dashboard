@@ -9,7 +9,14 @@ SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 FT_CLIENT_ID = os.environ["FT_CLIENT_ID"]
 FT_CLIENT_SECRET = os.environ["FT_CLIENT_SECRET"]
 
-MOTS_CLES = "Data Scientist"
+MOTS_CLES = [
+    "Data Scientist",
+    "Data Analyst",
+    "Machine Learning Engineer",
+    "AI Engineer",
+]
+
+PUBLIEE_DEPUIS = 1  # jours
 
 
 def _str(val):
@@ -42,18 +49,27 @@ def extract_offre(offre):
 
 def main():
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    all_rows = {}
 
     with FranceTravailClient(client_id=FT_CLIENT_ID, client_secret=FT_CLIENT_SECRET) as client:
-        result = client.search(SearchParams(motsCles=MOTS_CLES, range_="0-149"))
-        offres = getattr(result, "resultats", []) or []
+        for mot in MOTS_CLES:
+            result = client.search(SearchParams(
+                motsCles=mot,
+                publieeDepuis=PUBLIEE_DEPUIS,
+                range_="0-149",
+            ))
+            offres = getattr(result, "resultats", []) or []
+            for o in offres:
+                all_rows[o.id] = extract_offre(o)
+            print(f"  {mot} : {len(offres)} offres")
 
-    if not offres:
+    if not all_rows:
         print("Aucune offre trouvée.")
         return
 
-    rows = [extract_offre(o) for o in offres]
+    rows = list(all_rows.values())
     supabase.table("offres").upsert(rows, on_conflict="id").execute()
-    print(f"{len(rows)} offres insérées/mises à jour.")
+    print(f"{len(rows)} offres insérées/mises à jour (doublons inter-mots-clés dédupliqués).")
 
 
 if __name__ == "__main__":
