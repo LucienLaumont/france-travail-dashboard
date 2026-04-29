@@ -127,5 +127,5 @@ Le workflow [`collect.yml`](.github/workflows/collect.yml) tourne à **17h UTC (
 
 --
 
-Projet mis en place par [Lucien Laumont](https://lucienlaumont.github.io/france-travail-dashboard/)
-Contact : laumontlucien@gmail.com
+- Projet mis en place par [Lucien Laumont](https://lucienlaumont.github.io/france-travail-dashboard/)
+- Contact : laumontlucien@gmail.com
