@@ -2,7 +2,7 @@
 
 Dashboard de veille automatisé sur les offres d'emploi **Data / IA** en France. Les offres sont collectées chaque jour via l'API France Travail et affichées dans une interface statique hébergée sur GitHub Pages.
 
-**Live** → [lucienlaumont.github.io/france-travail-dashboard](https://LucienLaumont.github.io/france-travail-dashboard/) · **Portfolio** → [lucienlaumont.github.io/portfolio](https://lucienlaumont.github.io/france-travail-dashboard/)
+**Live** → [lucienlaumont.github.io/france-travail-dashboard](https://LucienLaumont.github.io/france-travail-dashboard/)
 
 ---
 
@@ -114,10 +114,6 @@ Le workflow [`collect.yml`](.github/workflows/collect.yml) tourne à **17h UTC (
 | `FT_CLIENT_ID` | Client ID de l'API France Travail |
 | `FT_CLIENT_SECRET` | Client Secret de l'API France Travail |
 
-### Frontend (clé publique)
-
-La clé `anon` Supabase est stockée en clair dans `docs/index.html` — c'est le pattern standard Supabase pour les applications publiques. Elle est protégée par les politiques **Row Level Security (RLS)** qui limitent l'accès à la lecture seule.
-
 ---
 
 ## Déploiement
@@ -128,3 +124,7 @@ La clé `anon` Supabase est stockée en clair dans `docs/index.html` — c'est l
 4. Remplacer `SUPABASE_URL` et `SUPABASE_ANON_KEY` dans `docs/index.html`
 5. Activer GitHub Pages : Settings → Pages → Branch `main` → Folder `/docs`
 6. Pousser sur `main` — le dashboard est live, le cron tourne chaque soir
+
+--
+
+Projet mis en place par **Lucien Laumont** → [lucienlaumont.github.io/portfolio](https://lucienlaumont.github.io/france-travail-dashboard/)
