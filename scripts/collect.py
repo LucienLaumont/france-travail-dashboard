@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timezone
 
 from france_travail import FranceTravailClient, SearchParams
@@ -19,6 +20,28 @@ MOTS_CLES = [
 PUBLIEE_DEPUIS = 1  # jours
 
 
+_SALAIRE_RE = re.compile(
+    r"(Annuel|Mensuel|Horaire) de ([\d.]+) Euros à ([\d.]+) Euros(?: sur ([\d.]+) mois)?"
+)
+
+
+def parse_salaire(libelle):
+    if not libelle:
+        return None, None
+    m = _SALAIRE_RE.search(libelle)
+    if not m:
+        return None, None
+    periode, raw_min, raw_max, nb_mois = m.groups()
+    sal_min, sal_max = float(raw_min), float(raw_max)
+    if periode == "Mensuel":
+        nb_mois = float(nb_mois) if nb_mois else 12.0
+        sal_min *= nb_mois
+        sal_max *= nb_mois
+    elif periode == "Horaire":
+        return None, None  # pas assez d'info pour annualiser
+    return round(sal_min, 2), round(sal_max, 2)
+
+
 def _str(val):
     if val is None:
         return None
@@ -32,6 +55,8 @@ def extract_offre(offre):
     entreprise = getattr(offre, "entreprise", None)
     salaire = getattr(offre, "salaire", None)
     date_creation = getattr(offre, "dateCreation", None) or getattr(offre, "date_creation", None)
+    salaire_libelle = getattr(salaire, "libelle", None) if salaire else None
+    salaire_min, salaire_max = parse_salaire(salaire_libelle)
 
     return {
         "id": offre.id,
@@ -41,7 +66,9 @@ def extract_offre(offre):
         "entreprise_nom": getattr(entreprise, "nom", None) if entreprise else None,
         "rome_code": getattr(offre, "romeCode", None) or getattr(offre, "rome_code", None),
         "rome_libelle": getattr(offre, "romeLibelle", None) or getattr(offre, "rome_libelle", None),
-        "salaire_libelle": getattr(salaire, "libelle", None) if salaire else None,
+        "salaire_libelle": salaire_libelle,
+        "salaire_min": salaire_min,
+        "salaire_max": salaire_max,
         "date_creation": _str(date_creation),
         "date_collecte": datetime.now(timezone.utc).isoformat(),
     }
