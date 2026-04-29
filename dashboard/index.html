@@ -1,0 +1,715 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dashboard — Offres Data / IA</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml"/>
+  <link rel="stylesheet" href="colors_and_type.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-1);
+      color: var(--fg-1);
+      font-family: var(--font-sans);
+      font-size: var(--fs-body);
+      line-height: var(--lh-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 48px 48px 80px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 48px;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left img { height: 28px; }
+    .header h2 {
+      font-size: var(--fs-h3);
+      letter-spacing: var(--ls-h2);
+      line-height: 1;
+    }
+    .header-meta {
+      font-size: var(--fs-caption);
+      color: var(--fg-3);
+      letter-spacing: var(--ls-upper);
+      text-transform: uppercase;
+    }
+
+    /* ── KPI row ── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .kpi {
+      background: var(--bg-3);
+      border: 1px solid var(--border-warm);
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .kpi-label {
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--fg-3);
+    }
+    .kpi-value {
+      font-size: var(--fs-h2);
+      letter-spacing: var(--ls-h2);
+      line-height: 1;
+    }
+    .kpi-sub {
+      font-size: var(--fs-caption);
+      color: var(--fg-3);
+    }
+
+    /* ── Top charts row (line 2/3 + donut 1/3) ── */
+    .top-charts {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background: var(--bg-3);
+      border: 1px solid var(--border-warm);
+      padding: 32px;
+      box-shadow: var(--shadow-golden-sm);
+      min-width: 0;
+    }
+    .card canvas { max-width: 100%; }
+
+    .chart-box {
+      position: relative;
+      height: 240px;
+      width: 100%;
+    }
+    .chart-box canvas {
+      position: absolute;
+      inset: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .card-title {
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--fg-3);
+      margin-bottom: 20px;
+    }
+
+    /* ── Tables row ── */
+    .tables-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--fg-3);
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--border-warm);
+      font-weight: var(--fw-regular);
+    }
+    td {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(127,99,21,0.06);
+      font-size: var(--fs-caption);
+    }
+    td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .rank {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      font-size: 11px;
+      background: var(--cream);
+      color: var(--fg-2);
+      margin-right: 8px;
+    }
+    .bar-cell { display: flex; align-items: center; gap: 10px; }
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--mistral-orange);
+      transition: width 0.4s ease;
+    }
+
+    /* ── Offers list ── */
+    .offers-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .offers-header .card-title { margin-bottom: 0; }
+
+    .offer-item {
+      display: grid;
+      grid-template-columns: 1fr 180px 160px 100px 160px auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(127,99,21,0.06);
+      font-size: var(--fs-caption);
+    }
+    .offer-item:first-child { border-top: 1px solid var(--border-warm); }
+
+    .offer-title {
+      font-size: var(--fs-body);
+      color: var(--fg-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .offer-company {
+      color: var(--fg-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .offer-lieu {
+      color: var(--fg-3);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .offer-contrat {
+      display: inline-block;
+      padding: 3px 10px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      background: var(--cream);
+      color: var(--fg-2);
+    }
+    .offer-salaire {
+      color: var(--fg-3);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .offer-link a {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--mistral-orange);
+      text-decoration: none;
+      transition: color 180ms ease;
+    }
+    .offer-link a:hover { color: var(--mistral-flame); }
+    .offer-link a svg { width: 14px; height: 14px; }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      background: var(--bg-3);
+      border: 1px solid var(--border-warm);
+      padding: 8px 16px;
+      font-family: var(--font-sans);
+      font-size: var(--fs-caption);
+      cursor: pointer;
+      color: var(--fg-1);
+      transition: background 180ms ease;
+    }
+    .pagination button:hover { background: var(--cream); }
+    .pagination button:disabled { opacity: 0.35; cursor: default; }
+    .pagination button:disabled:hover { background: var(--bg-3); }
+    .pagination span { font-size: var(--fs-caption); color: var(--fg-3); }
+
+    /* ── Loading / error ── */
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 0;
+      gap: 16px;
+      color: var(--fg-3);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--cream);
+      border-top-color: var(--mistral-orange);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-state {
+      background: #fff5f0;
+      border: 1px solid rgba(250,82,15,0.2);
+      padding: 20px 28px;
+      color: var(--mistral-orange);
+      font-size: var(--fs-caption);
+    }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input,
+    .filter-bar select {
+      font-family: var(--font-sans);
+      font-size: var(--fs-caption);
+      padding: 10px 14px;
+      border: 1px solid var(--border-input);
+      background: var(--bg-3);
+      color: var(--fg-1);
+      outline: none;
+      transition: border-color 180ms ease;
+    }
+    .filter-bar input:focus,
+    .filter-bar select:focus {
+      border-color: var(--mistral-orange);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+    .filter-bar input { flex: 1; min-width: 200px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .shell { padding: 32px 24px 64px; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .top-charts { grid-template-columns: 1fr; }
+      .tables-row { grid-template-columns: 1fr; }
+      .offer-item { grid-template-columns: 1fr; gap: 4px; }
+    }
+
+    /* ── Gradient footer bar ── */
+    .footer-bar {
+      height: 6px;
+      background: var(--block-gradient);
+      margin-top: 48px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell" id="app">
+    <div class="loading-state" id="loading">
+      <div class="spinner"></div>
+      <span>Chargement des offres…</span>
+    </div>
+  </div>
+
+  <script>
+    /* ================================================================
+       CONFIG — replace these two placeholders before deployment
+       ================================================================ */
+    const SUPABASE_URL = 'https://bsqkthbemrtjfrjxdjbg.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcWt0aGJlbXJ0amZyanhkamJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODU4NjQsImV4cCI6MjA5MzA2MTg2NH0.7o8PihUD586UwjE__wvBvUOmED4yzyEqhOggaG4-T9c';
+    const TABLE        = 'offres';
+    const PAGE_SIZE    = 15;
+
+    /* ================================================================
+       DATA LAYER
+       ================================================================ */
+    async function fetchAllOffres() {
+      const allRows = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=date_creation.desc&offset=${from}&limit=${step}`,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!res.ok) throw new Error(`Supabase ${res.status}: ${res.statusText}`);
+        const rows = await res.json();
+        allRows.push(...rows);
+        if (rows.length < step) break;
+        from += step;
+      }
+      return allRows;
+    }
+
+    /* ================================================================
+       HELPERS
+       ================================================================ */
+    function countBy(arr, key) {
+      const m = {};
+      arr.forEach(r => { const v = r[key] || '—'; m[v] = (m[v] || 0) + 1; });
+      return Object.entries(m).sort((a, b) => b[1] - a[1]);
+    }
+
+    function fmtNum(n) {
+      return n.toLocaleString('fr-FR');
+    }
+
+    function fmtSalary(row) {
+      if (row.salaire_min && row.salaire_max) return `${fmtNum(row.salaire_min)} — ${fmtNum(row.salaire_max)} €`;
+      if (row.salaire_min) return `≥ ${fmtNum(row.salaire_min)} €`;
+      if (row.salaire_max) return `≤ ${fmtNum(row.salaire_max)} €`;
+      if (row.salaire_libelle) return row.salaire_libelle;
+      return '—';
+    }
+
+    function dayStr(isoStr) {
+      return isoStr ? isoStr.slice(0, 10) : null;
+    }
+
+    const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>`;
+
+    /* ================================================================
+       STATE
+       ================================================================ */
+    let allData  = [];
+    let filtered = [];
+    let offersPage = 0;
+
+    /* ================================================================
+       FILTERS
+       ================================================================ */
+    function applyFilters() {
+      const q  = (document.getElementById('search-input')?.value || '').toLowerCase();
+      const ct = document.getElementById('contrat-select')?.value || '';
+      filtered = allData.filter(r => {
+        if (q && !(r.intitule || '').toLowerCase().includes(q)
+               && !(r.entreprise_nom || '').toLowerCase().includes(q)
+               && !(r.lieu_travail || '').toLowerCase().includes(q)) return false;
+        if (ct && r.type_contrat !== ct) return false;
+        return true;
+      });
+      offersPage = 0;
+      render(filtered);
+    }
+
+    /* ================================================================
+       RENDER
+       ================================================================ */
+    function render(data) {
+      const shell = document.getElementById('app');
+
+      const totalOffres      = data.length;
+      const contrats         = countBy(data, 'type_contrat');
+      const salaires         = data.filter(r => r.salaire_min || r.salaire_max);
+      const avgSal           = salaires.length
+        ? Math.round(salaires.reduce((s, r) => s + ((r.salaire_min || r.salaire_max || 0) + (r.salaire_max || r.salaire_min || 0)) / 2, 0) / salaires.length)
+        : null;
+      const lieux            = countBy(data, 'lieu_travail');
+      const uniqueEntreprises = new Set(data.map(r => r.entreprise_nom).filter(Boolean)).size;
+
+      const parJour = {};
+      data.forEach(r => { const d = dayStr(r.date_collecte); if (d) parJour[d] = (parJour[d] || 0) + 1; });
+      const joursSorted = Object.keys(parJour).sort();
+
+      const topEntreprises = countBy(data, 'entreprise_nom').slice(0, 8);
+      const topLieux       = lieux.slice(0, 8);
+      const maxEnt         = topEntreprises[0]?.[1] || 1;
+      const maxLieu        = topLieux[0]?.[1] || 1;
+
+      const sortedOffers = [...data].sort((a, b) => (b.date_creation || '').localeCompare(a.date_creation || ''));
+      const pageOffers   = sortedOffers.slice(offersPage * PAGE_SIZE, (offersPage + 1) * PAGE_SIZE);
+      const totalPages   = Math.ceil(sortedOffers.length / PAGE_SIZE);
+
+      const allContrats = [...new Set(allData.map(r => r.type_contrat).filter(Boolean))].sort();
+      const prevSearch  = (document.getElementById('search-input')?.value || '').replace(/"/g, '&quot;');
+      const prevContrat = document.getElementById('contrat-select')?.value || '';
+
+      shell.innerHTML = `
+        <header class="header">
+          <div class="header-left">
+            <img src="assets/logo-block.svg" alt="logo"/>
+            <h2>Offres Data / IA</h2>
+          </div>
+          <span class="header-meta">France Travail · mis à jour ${joursSorted.length ? joursSorted[joursSorted.length - 1] : '—'}</span>
+        </header>
+
+        <div class="filter-bar">
+          <input type="text" id="search-input" placeholder="Rechercher par titre, entreprise ou lieu…" value="${prevSearch}"/>
+          <select id="contrat-select">
+            <option value="">Tous les contrats</option>
+            ${allContrats.map(c => `<option value="${c}" ${c === prevContrat ? 'selected' : ''}>${c}</option>`).join('')}
+          </select>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <span class="kpi-label">Offres totales</span>
+            <span class="kpi-value">${fmtNum(totalOffres)}</span>
+            <span class="kpi-sub">${contrats[0] ? contrats[0][1] + ' ' + contrats[0][0] : ''}</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Entreprises</span>
+            <span class="kpi-value">${fmtNum(uniqueEntreprises)}</span>
+            <span class="kpi-sub">recruteurs uniques</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Salaire moyen</span>
+            <span class="kpi-value">${avgSal ? fmtNum(avgSal) + ' €' : '—'}</span>
+            <span class="kpi-sub">${salaires.length} offres renseignées</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Localisations</span>
+            <span class="kpi-value">${fmtNum(lieux.length)}</span>
+            <span class="kpi-sub">${lieux[0] ? lieux[0][0] + ' en tête' : ''}</span>
+          </div>
+        </div>
+
+        <div class="top-charts">
+          <div class="card">
+            <div class="card-title">Offres collectées par jour</div>
+            <div class="chart-box"><canvas id="chart-line"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Répartition par contrat</div>
+            <div class="chart-box"><canvas id="chart-pie"></canvas></div>
+          </div>
+        </div>
+
+        <div class="tables-row">
+          <div class="card">
+            <div class="card-title">Top entreprises</div>
+            <table>
+              <thead><tr><th>Entreprise</th><th style="text-align:right">Offres</th></tr></thead>
+              <tbody>
+                ${topEntreprises.map(([name, count], i) => `
+                  <tr>
+                    <td><div class="bar-cell"><span class="rank">${i + 1}</span><span>${name}</span></div></td>
+                    <td>
+                      <div class="bar-cell" style="justify-content:flex-end">
+                        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count / maxEnt * 100)}%"></div></div>
+                        <span>${count}</span>
+                      </div>
+                    </td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-title">Top localisations</div>
+            <table>
+              <thead><tr><th>Lieu</th><th style="text-align:right">Offres</th></tr></thead>
+              <tbody>
+                ${topLieux.map(([name, count], i) => `
+                  <tr>
+                    <td><div class="bar-cell"><span class="rank">${i + 1}</span><span>${name}</span></div></td>
+                    <td>
+                      <div class="bar-cell" style="justify-content:flex-end">
+                        <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count / maxLieu * 100)}%"></div></div>
+                        <span>${count}</span>
+                      </div>
+                    </td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="offers-header">
+            <div class="card-title">Dernières offres</div>
+            <span class="kpi-sub">${fmtNum(sortedOffers.length)} résultats</span>
+          </div>
+          ${pageOffers.map(r => `
+            <div class="offer-item">
+              <span class="offer-title" title="${(r.intitule || '').replace(/"/g, '&quot;')}">${r.intitule || '—'}</span>
+              <span class="offer-company">${r.entreprise_nom || '—'}</span>
+              <span class="offer-lieu">${r.lieu_travail || '—'}</span>
+              <span class="offer-contrat">${r.type_contrat || '—'}</span>
+              <span class="offer-salaire">${fmtSalary(r)}</span>
+              <span class="offer-link"><a href="https://candidat.francetravail.fr/offres/recherche/detail/${r.id}" target="_blank" rel="noopener">Voir ${arrowSvg}</a></span>
+            </div>
+          `).join('')}
+          ${totalPages > 1 ? `
+          <div class="pagination">
+            <button id="prev-btn" ${offersPage === 0 ? 'disabled' : ''}>← Précédent</button>
+            <span>${offersPage + 1} / ${totalPages}</span>
+            <button id="next-btn" ${offersPage >= totalPages - 1 ? 'disabled' : ''}>Suivant →</button>
+          </div>` : ''}
+        </div>
+
+        <div class="footer-bar"></div>
+      `;
+
+      document.getElementById('search-input')?.addEventListener('input', debounce(applyFilters, 300));
+      document.getElementById('contrat-select')?.addEventListener('change', applyFilters);
+      document.getElementById('prev-btn')?.addEventListener('click', () => { offersPage--; render(filtered); });
+      document.getElementById('next-btn')?.addEventListener('click', () => { offersPage++; render(filtered); });
+
+      renderLineChart(joursSorted, joursSorted.map(d => parJour[d]));
+      renderPieChart(contrats);
+    }
+
+    /* ================================================================
+       CHARTS
+       ================================================================ */
+    const chartColors = ['#fa520f', '#ff8105', '#ffa110', '#ffb83e', '#ffd06a', '#ffe295', '#ffd900', '#1f1f1f'];
+
+    function renderLineChart(labels, values) {
+      const ctx = document.getElementById('chart-line');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            borderColor: '#fa520f',
+            backgroundColor: 'rgba(250,82,15,0.08)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 3,
+            pointBackgroundColor: '#fa520f',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c', maxTicksLimit: 12 }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(127,99,21,0.06)' },
+              ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderPieChart(contrats) {
+      const ctx = document.getElementById('chart-pie');
+      if (!ctx) return;
+      const top = contrats.slice(0, 7);
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: top.map(c => c[0]),
+          datasets: [{
+            data: top.map(c => c[1]),
+            backgroundColor: chartColors.slice(0, top.length),
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { font: { family: 'Arial', size: 12 }, padding: 10, usePointStyle: true, pointStyleWidth: 8, boxHeight: 8 }
+            }
+          }
+        }
+      });
+    }
+
+    /* ================================================================
+       DEBOUNCE
+       ================================================================ */
+    function debounce(fn, ms) {
+      let t;
+      return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), ms); };
+    }
+
+    /* ================================================================
+       DEMO DATA (used when placeholders not replaced)
+       ================================================================ */
+    function generateDemoData() {
+      const titles    = ['Data Scientist Senior', 'ML Engineer', 'Data Analyst', 'Ingénieur IA', 'Data Engineer', 'Chef de projet Data', 'Développeur Python / ML', 'Consultant Big Data', 'NLP Researcher', 'MLOps Engineer'];
+      const companies = ['Société Générale', 'BNP Paribas', 'Thales', 'Capgemini', 'Atos', 'Orange', 'Dataiku', 'OVHcloud', 'Dassault Systèmes', 'Criteo', 'Mistral AI', 'Ubisoft', null];
+      const lieux     = ['Paris 75', 'Lyon 69', 'Toulouse 31', 'Nantes 44', 'Bordeaux 33', 'Lille 59', 'Marseille 13', 'Rennes 35', 'Sophia Antipolis 06', 'Grenoble 38'];
+      const contrats  = ['CDI', 'CDI', 'CDI', 'CDD', 'CDD', 'MIS', 'LIB', 'FRA'];
+      const rows = [];
+      for (let i = 0; i < 187; i++) {
+        const daysAgo       = Math.floor(Math.random() * 30);
+        const collectDaysAgo = Math.max(0, daysAgo - Math.floor(Math.random() * 2));
+        const hasSalary     = Math.random() > 0.35;
+        const salMin        = hasSalary ? 30000 + Math.floor(Math.random() * 40000) : null;
+        const salMax        = hasSalary ? salMin + 5000 + Math.floor(Math.random() * 20000) : null;
+        const d  = new Date(); d.setDate(d.getDate() - daysAgo);
+        const dc = new Date(); dc.setDate(dc.getDate() - collectDaysAgo);
+        rows.push({
+          id: `${100000 + i}ABC`,
+          intitule: titles[Math.floor(Math.random() * titles.length)],
+          type_contrat: contrats[Math.floor(Math.random() * contrats.length)],
+          lieu_travail: lieux[Math.floor(Math.random() * lieux.length)],
+          entreprise_nom: companies[Math.floor(Math.random() * companies.length)],
+          salaire_min: salMin,
+          salaire_max: salMax,
+          salaire_libelle: hasSalary ? `Annuel de ${salMin} Euros à ${salMax} Euros` : null,
+          date_creation: d.toISOString(),
+          date_collecte: dc.toISOString()
+        });
+      }
+      return rows;
+    }
+
+    /* ================================================================
+       INIT
+       ================================================================ */
+    (async function init() {
+      const shell = document.getElementById('app');
+      try {
+        if (SUPABASE_URL === 'SUPABASE_URL' || SUPABASE_KEY === 'SUPABASE_ANON_KEY') {
+          console.warn('Supabase credentials not set — using demo data');
+          allData = generateDemoData();
+        } else {
+          allData = await fetchAllOffres();
+        }
+        filtered = [...allData];
+        render(filtered);
+      } catch (err) {
+        shell.innerHTML = `
+          <header class="header">
+            <div class="header-left">
+              <img src="assets/logo-block.svg" alt="logo"/>
+              <h2>Offres Data / IA</h2>
+            </div>
+          </header>
+          <div class="error-state">Erreur de chargement : ${err.message}</div>
+        `;
+      }
+    })();
+  </script>
+</body>
+</html>

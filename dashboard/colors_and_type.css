@@ -1,0 +1,162 @@
+/* ==========================================================================
+   Mistral-Warm Portfolio Design System
+   Foundational tokens: colors + typography
+   ========================================================================== */
+
+:root {
+  /* ---------- BRAND / PRIMARY ---------- */
+  --mistral-orange: #fa520f;
+  --mistral-flame:  #fb6424;
+  --block-orange:   #ff8105;
+
+  /* ---------- SUNSHINE SCALE ---------- */
+  --sunshine-900: #ff8a00;
+  --sunshine-700: #ffa110;
+  --sunshine-500: #ffb83e;
+  --sunshine-300: #ffd06a;
+  --block-gold:   #ffe295;
+  --bright-yellow:#ffd900;
+
+  /* ---------- SURFACES ---------- */
+  --warm-ivory:   #fffaeb;
+  --cream:        #fff0c2;
+  --pure-white:   #ffffff;
+  --mistral-black:#1f1f1f;
+
+  /* ---------- NEUTRALS & TEXT ---------- */
+  --fg-1:         #1f1f1f;
+  --fg-2:         hsl(0, 0%, 24%);
+  --fg-3:         hsl(0, 0%, 42%);
+  --fg-on-dark:   #ffffff;
+
+  --bg-1:         #fffaeb;
+  --bg-2:         #fff0c2;
+  --bg-3:         #ffffff;
+  --bg-dark:      #1f1f1f;
+
+  --border-input: hsl(240, 5.9%, 90%);
+  --border-warm:  rgba(127, 99, 21, 0.15);
+  --white-overlay-1: oklab(1 0 0 / 0.088);
+  --white-overlay-2: oklab(1 0 0 / 0.1);
+  --black-overlay-1: oklab(0 0 0 / 0.1);
+
+  /* ---------- ACCENTS / SEMANTIC ---------- */
+  --accent:         hsl(17, 96%, 52%);
+  --accent-ring:    rgba(250, 82, 15, 0.35);
+
+  /* ---------- GRADIENTS ---------- */
+  --block-gradient: linear-gradient(
+    90deg,
+    #ffd900 0%,
+    #ffe295 16%,
+    #ffa110 40%,
+    #ff8105 64%,
+    #fb6424 84%,
+    #fa520f 100%
+  );
+  --sunset-gradient: linear-gradient(
+    180deg,
+    #ffa110 0%,
+    #fb6424 45%,
+    #1f1f1f 100%
+  );
+  --golden-wash: linear-gradient(
+    180deg,
+    rgba(255, 161, 16, 0) 0%,
+    rgba(255, 161, 16, 0.35) 100%
+  );
+
+  /* ---------- SHADOWS ---------- */
+  --shadow-golden:
+    rgba(127, 99, 21, 0.12) -8px  16px  39px,
+    rgba(127, 99, 21, 0.10) -33px 64px  72px,
+    rgba(127, 99, 21, 0.06) -73px 144px 97px,
+    rgba(127, 99, 21, 0.03) -131px 257px 115px,
+    rgba(127, 99, 21, 0.01) -204px 401px 126px;
+  --shadow-golden-sm:
+    rgba(127, 99, 21, 0.10) -4px 8px 18px,
+    rgba(127, 99, 21, 0.06) -12px 24px 32px;
+  --shadow-golden-md:
+    rgba(127, 99, 21, 0.12) -6px 12px 28px,
+    rgba(127, 99, 21, 0.08) -20px 40px 56px,
+    rgba(127, 99, 21, 0.04) -40px 80px 80px;
+
+  /* ---------- RADII ---------- */
+  --radius-0: 0px;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-full: 9999px;
+
+  /* ---------- SPACING SCALE ---------- */
+  --space-0: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 24px;
+  --space-8: 32px;
+  --space-9: 40px;
+  --space-10: 48px;
+  --space-11: 64px;
+  --space-12: 80px;
+  --space-13: 98px;
+  --space-14: 100px;
+
+  /* ---------- TYPOGRAPHY ---------- */
+  --font-sans:
+    "Mistral Sans", Arial, ui-sans-serif, system-ui,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+
+  --fs-display:  82px;
+  --fs-h1:       56px;
+  --fs-h2:       48px;
+  --fs-h3:       32px;
+  --fs-h4:       30px;
+  --fs-h5:       24px;
+  --fs-body:     16px;
+  --fs-caption:  14px;
+  --fs-tiny:     12px;
+
+  --lh-display: 1.00;
+  --lh-h1:      0.95;
+  --lh-h2:      0.95;
+  --lh-h3:      1.15;
+  --lh-h4:      1.20;
+  --lh-h5:      1.33;
+  --lh-body:    1.50;
+  --lh-caption: 1.43;
+
+  --ls-display: -2.05px;
+  --ls-h1:      -1.2px;
+  --ls-h2:      -1.0px;
+  --ls-body:    0;
+  --ls-upper:   0.04em;
+
+  --fw-regular: 400;
+  --fw-medium:  500;
+}
+
+html, body {
+  background: var(--bg-1);
+  color: var(--fg-1);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-regular);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1 { font-size: var(--fs-h1); line-height: var(--lh-h1); letter-spacing: var(--ls-h1); font-weight: var(--fw-regular); margin: 0; }
+h2 { font-size: var(--fs-h2); line-height: var(--lh-h2); letter-spacing: var(--ls-h2); font-weight: var(--fw-regular); margin: 0; }
+h3 { font-size: var(--fs-h3); line-height: var(--lh-h3); font-weight: var(--fw-regular); margin: 0; }
+h4 { font-size: var(--fs-h4); line-height: var(--lh-h4); font-weight: var(--fw-regular); margin: 0; }
+h5 { font-size: var(--fs-h5); line-height: var(--lh-h5); font-weight: var(--fw-regular); margin: 0; }
+p  { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; }
+
+.caption, small { font-size: var(--fs-caption); line-height: var(--lh-caption); }
+.upper { text-transform: uppercase; letter-spacing: var(--ls-upper); }
+code, pre, .mono { font-family: var(--font-mono); font-size: 0.95em; }

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" width="240" height="40" role="img" aria-label="Block gradient logo">
+  <rect x="0" y="0" width="40" height="40" fill="#ffd900"></rect>
+  <rect x="40" y="0" width="40" height="40" fill="#ffe295"></rect>
+  <rect x="80" y="0" width="40" height="40" fill="#ffa110"></rect>
+  <rect x="120" y="0" width="40" height="40" fill="#ff8105"></rect>
+  <rect x="160" y="0" width="40" height="40" fill="#fb6424"></rect>
+  <rect x="200" y="0" width="40" height="40" fill="#fa520f"></rect>
+</svg>
