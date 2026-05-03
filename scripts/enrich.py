@@ -23,7 +23,7 @@ Tu analyses des offres d'emploi françaises. Pour chaque offre du tableau JSON f
   "senior"  → 5+ ans, ou mots-clés : senior, expert, lead, référent, architecte, management
   "unknown" → aucun indicateur clair
 
-- entreprise_nom : extraire le nom si "company_missing" est true et le nom est explicitement \
+- entreprise_nom : extraire le nom si "entreprise_nom" est vide / ne correspond pas à une entreprise et le nom est explicitement \
 écrit dans le texte ; sinon null. Ne jamais inventer.
 
 Réponds UNIQUEMENT avec un tableau JSON valide dans le même ordre que l'input :
@@ -36,7 +36,7 @@ def enrich_batch(ac: anthropic.Anthropic, offres: list[dict]) -> tuple[list[dict
             "id": o["id"],
             "intitule": o["intitule"],
             "description": (o.get("description") or "")[:800],  # 1500 → 800 chars
-            "company_missing": not o.get("entreprise_nom"),
+            "entreprise_nom": o.get("entreprise_nom"),
         }
         for o in offres
     ]
