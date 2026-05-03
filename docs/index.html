@@ -313,7 +313,7 @@
     .offer-contrat {
       display: inline-block;
       padding: 3px 10px;
-      font-size: 11px;
+      font-size: 9px;
       text-transform: uppercase;
       letter-spacing: var(--ls-upper);
       background: var(--cream);
@@ -507,7 +507,7 @@
     const IDF_DEPTS = new Set(['75', '77', '78', '91', '92', '93', '94', '95']);
     function lieuDept(lieu) {
       if (!lieu) return null;
-      const m = lieu.match(/(\d{2,3})\s*$/);
+      const m = lieu.match(/^\s*(\d{2,3})/);
       return m ? m[1] : null;
     }
     function isIDF(lieu) {
@@ -663,12 +663,11 @@
               </div>
             </div>
             <div class="filter-group filter-group--auto">
-              <div class="filter-label">Région</div>
-              <div class="chip-row" id="region-chips">
-                ${[['all', 'Toutes'], ['idf', 'Île-de-France'], ['province', 'Province']].map(([v, l]) =>
-                  `<button class="chip${filterRegion === v ? ' active' : ''}" data-val="${v}">${l}</button>`
-                ).join('')}
-              </div>
+              <div class="filter-label">Type de contrat</div>
+              <select id="contrat-select" class="filter-select">
+                <option value="">Tous</option>
+                ${allContrats.map(c => `<option value="${c}" ${c === filterContrat ? 'selected' : ''}>${contratLabel(c)}</option>`).join('')}
+              </select>
             </div>
             <div class="filter-group filter-group--auto">
               <div class="filter-label">Alternance</div>
@@ -679,11 +678,12 @@
               </div>
             </div>
             <div class="filter-group filter-group--auto">
-              <div class="filter-label">Type de contrat</div>
-              <select id="contrat-select" class="filter-select">
-                <option value="">Tous</option>
-                ${allContrats.map(c => `<option value="${c}" ${c === filterContrat ? 'selected' : ''}>${contratLabel(c)}</option>`).join('')}
-              </select>
+              <div class="filter-label">Région</div>
+              <div class="chip-row" id="region-chips">
+                ${[['all', 'Toutes'], ['idf', 'Île-de-France'], ['province', 'Province']].map(([v, l]) =>
+                  `<button class="chip${filterRegion === v ? ' active' : ''}" data-val="${v}">${l}</button>`
+                ).join('')}
+              </div>
             </div>
             <div class="filter-group filter-group--input">
               <div class="filter-label">Localisation</div>
