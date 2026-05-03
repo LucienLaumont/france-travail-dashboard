@@ -17,7 +17,7 @@ MOTS_CLES = [
     "AI Engineer",
 ]
 
-PUBLIEE_DEPUIS = 31  # jours
+PUBLIEE_DEPUIS = 1 # jours
 
 
 _SALAIRE_RE = re.compile(
