@@ -552,6 +552,7 @@
     let filterExp     = '';
     let filterLieu    = '';
     let filterCompany = '';
+    let filterAlternance = 'exclude'; // 'all' | 'exclude' | 'only'
 
     /* ================================================================
        FILTERS
@@ -572,6 +573,8 @@
         }
         if (filterContrat && r.type_contrat !== filterContrat) return false;
         if (filterExp     && r.experience_level !== filterExp)  return false;
+        if (filterAlternance === 'exclude' && r.is_alternance === true)  return false;
+        if (filterAlternance === 'only'    && r.is_alternance !== true)  return false;
         return true;
       });
       offersPage = 0;
@@ -632,6 +635,14 @@
               <div class="chip-row" id="exp-chips">
                 ${[['', 'Tous'], ['junior', 'Junior'], ['mid', 'Mid'], ['senior', 'Senior']].map(([v, l]) =>
                   `<button class="chip${filterExp === v ? ' active' : ''}" data-val="${v}">${l}</button>`
+                ).join('')}
+              </div>
+            </div>
+            <div class="filter-group filter-group--auto">
+              <div class="filter-label">Alternance</div>
+              <div class="chip-row" id="alt-chips">
+                ${[['all', 'Toutes'], ['exclude', 'Hors alternance'], ['only', 'Alternance']].map(([v, l]) =>
+                  `<button class="chip${filterAlternance === v ? ' active' : ''}" data-val="${v}">${l}</button>`
                 ).join('')}
               </div>
             </div>
@@ -786,6 +797,12 @@
       document.querySelectorAll('#exp-chips .chip').forEach(btn => {
         btn.addEventListener('click', () => {
           filterExp = btn.dataset.val;
+          applyFilters();
+        });
+      });
+      document.querySelectorAll('#alt-chips .chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterAlternance = btn.dataset.val;
           applyFilters();
         });
       });
