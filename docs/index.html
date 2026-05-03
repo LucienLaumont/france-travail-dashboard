@@ -73,12 +73,52 @@
     .explorer-header .card-title { margin-bottom: 0; }
 
     .filter-grid {
-      display: grid;
-      grid-template-columns: repeat(3, auto) 1fr;
+      display: flex;
+      flex-wrap: wrap;
       gap: 20px 28px;
       align-items: start;
     }
-    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .filter-group--input { flex: 1 1 200px; }
+    .filter-group--auto { flex: 0 0 auto; }
+
+    /* ── Autocomplete ── */
+    .autocomplete { position: relative; }
+    .autocomplete-list {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      background: var(--bg-3);
+      border: 1px solid var(--border-warm);
+      box-shadow: var(--shadow-golden-sm);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 20;
+      display: none;
+    }
+    .autocomplete-list.show { display: block; }
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: var(--fs-caption);
+      color: var(--fg-1);
+      border-bottom: 1px solid rgba(127,99,21,0.05);
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover,
+    .autocomplete-item.active { background: var(--cream); color: var(--mistral-orange); }
+    .autocomplete-empty {
+      padding: 8px 12px;
+      font-size: var(--fs-caption);
+      color: var(--fg-3);
+      font-style: italic;
+    }
 
     .filter-label {
       font-size: var(--fs-tiny);
@@ -370,10 +410,9 @@
       .chart-line-card { grid-column: auto; }
       .tables-row { grid-template-columns: 1fr; }
       .offer-item { grid-template-columns: 1fr; gap: 4px; }
-      .filter-grid { grid-template-columns: 1fr 1fr; }
+      .filter-group--input { flex-basis: 100%; }
     }
     @media (max-width: 600px) {
-      .filter-grid { grid-template-columns: 1fr; }
       .kpi-row { grid-template-columns: 1fr 1fr; }
     }
 
@@ -446,6 +485,61 @@
 
     const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>`;
 
+    const contratLabels = {
+      CDI: 'CDI',
+      CDD: 'CDD',
+      MIS: 'Intérim',
+      LIB: 'Libéral',
+      FRA: 'Franchise',
+      SAI: 'Saisonnier',
+      CCE: 'Contrat de chantier',
+    };
+    function contratLabel(code) {
+      if (!code) return '—';
+      return contratLabels[code] || code;
+    }
+
+    /* ================================================================
+       AUTOCOMPLETE
+       ================================================================ */
+    function setupAutocomplete(inputId, listId, allValues, getCurrent, onChange) {
+      const input = document.getElementById(inputId);
+      const list  = document.getElementById(listId);
+      if (!input || !list) return;
+
+      const renderSuggestions = (q) => {
+        const ql = q.toLowerCase().trim();
+        const matches = ql
+          ? allValues.filter(v => v.toLowerCase().includes(ql)).slice(0, 10)
+          : allValues.slice(0, 10);
+        if (!matches.length) {
+          list.innerHTML = '<div class="autocomplete-empty">Aucun résultat</div>';
+        } else {
+          list.innerHTML = matches.map(v =>
+            `<div class="autocomplete-item" data-val="${v.replace(/"/g, '&quot;')}">${v}</div>`
+          ).join('');
+        }
+        list.classList.add('show');
+      };
+
+      input.addEventListener('focus', () => renderSuggestions(input.value));
+      input.addEventListener('input', () => {
+        renderSuggestions(input.value);
+        onChange(input.value);
+      });
+      list.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.autocomplete-item');
+        if (!item) return;
+        e.preventDefault();
+        input.value = item.dataset.val;
+        list.classList.remove('show');
+        onChange(input.value);
+      });
+      input.addEventListener('blur', () => {
+        setTimeout(() => list.classList.remove('show'), 120);
+      });
+    }
+
     /* ================================================================
        STATE
        ================================================================ */
@@ -453,25 +547,31 @@
     let filtered   = [];
     let offersPage = 0;
 
-    let filterSearch  = '';
+    let filterTitle   = '';
     let filterContrat = '';
     let filterExp     = '';
     let filterLieu    = '';
+    let filterCompany = '';
 
     /* ================================================================
        FILTERS
        ================================================================ */
     function applyFilters() {
       filtered = allData.filter(r => {
-        if (filterSearch) {
-          const q = filterSearch.toLowerCase();
-          if (!(r.intitule || '').toLowerCase().includes(q)
-           && !(r.entreprise_nom || '').toLowerCase().includes(q)
-           && !(r.lieu_travail || '').toLowerCase().includes(q)) return false;
+        if (filterTitle) {
+          const q = filterTitle.toLowerCase();
+          if (!(r.intitule || '').toLowerCase().includes(q)) return false;
+        }
+        if (filterCompany) {
+          const q = filterCompany.toLowerCase();
+          if (!(r.entreprise_nom || '').toLowerCase().includes(q)) return false;
+        }
+        if (filterLieu) {
+          const q = filterLieu.toLowerCase();
+          if (!(r.lieu_travail || '').toLowerCase().includes(q)) return false;
         }
         if (filterContrat && r.type_contrat !== filterContrat) return false;
         if (filterExp     && r.experience_level !== filterExp)  return false;
-        if (filterLieu    && r.lieu_travail !== filterLieu)      return false;
         return true;
       });
       offersPage = 0;
@@ -501,9 +601,10 @@
       const maxEnt         = topEntreprises[0]?.[1] || 1;
       const maxLieu        = topLieux[0]?.[1] || 1;
 
-      const allContrats = [...new Set(allData.map(r => r.type_contrat).filter(Boolean))].sort();
-      const allLieux    = countBy(allData, 'lieu_travail').filter(([l]) => l !== '—');
-      const enriched    = allData.filter(r => r.experience_level != null).length;
+      const allContrats   = [...new Set(allData.map(r => r.type_contrat).filter(Boolean))].sort();
+      const allLieuxList  = countBy(allData, 'lieu_travail').filter(([l]) => l !== '—').map(([l]) => l);
+      const allCompanies  = countBy(allData, 'entreprise_nom').filter(([c]) => c !== '—').map(([c]) => c);
+      const enriched      = allData.filter(r => r.experience_level != null).length;
 
       const sortedOffers = [...data].sort((a, b) => (b.date_creation || '').localeCompare(a.date_creation || ''));
       const pageOffers   = sortedOffers.slice(offersPage * PAGE_SIZE, (offersPage + 1) * PAGE_SIZE);
@@ -526,7 +627,7 @@
             <span class="kpi-sub">${fmtNum(data.length)} offre${data.length !== 1 ? 's' : ''} sélectionnée${data.length !== 1 ? 's' : ''}</span>
           </div>
           <div class="filter-grid">
-            <div class="filter-group">
+            <div class="filter-group filter-group--auto">
               <div class="filter-label">Niveau d'expérience</div>
               <div class="chip-row" id="exp-chips">
                 ${[['', 'Tous'], ['junior', 'Junior'], ['mid', 'Mid'], ['senior', 'Senior']].map(([v, l]) =>
@@ -534,23 +635,30 @@
                 ).join('')}
               </div>
             </div>
-            <div class="filter-group">
+            <div class="filter-group filter-group--auto">
               <div class="filter-label">Type de contrat</div>
               <select id="contrat-select" class="filter-select">
                 <option value="">Tous</option>
-                ${allContrats.map(c => `<option value="${c}" ${c === filterContrat ? 'selected' : ''}>${c}</option>`).join('')}
+                ${allContrats.map(c => `<option value="${c}" ${c === filterContrat ? 'selected' : ''}>${contratLabel(c)}</option>`).join('')}
               </select>
             </div>
-            <div class="filter-group">
+            <div class="filter-group filter-group--input">
               <div class="filter-label">Localisation</div>
-              <select id="lieu-select" class="filter-select">
-                <option value="">Tous les lieux</option>
-                ${allLieux.slice(0, 40).map(([l]) => `<option value="${l}" ${l === filterLieu ? 'selected' : ''}>${l}</option>`).join('')}
-              </select>
+              <div class="autocomplete">
+                <input type="text" id="lieu-input" class="filter-input" placeholder="Paris, Lyon…" autocomplete="off" value="${filterLieu.replace(/"/g, '&quot;')}"/>
+                <div class="autocomplete-list" id="lieu-suggestions"></div>
+              </div>
             </div>
-            <div class="filter-group">
-              <div class="filter-label">Recherche libre</div>
-              <input type="text" id="search-input" class="filter-input" placeholder="Titre, entreprise…" value="${filterSearch.replace(/"/g, '&quot;')}"/>
+            <div class="filter-group filter-group--input">
+              <div class="filter-label">Entreprise</div>
+              <div class="autocomplete">
+                <input type="text" id="company-input" class="filter-input" placeholder="Capgemini, BNP…" autocomplete="off" value="${filterCompany.replace(/"/g, '&quot;')}"/>
+                <div class="autocomplete-list" id="company-suggestions"></div>
+              </div>
+            </div>
+            <div class="filter-group filter-group--input">
+              <div class="filter-label">Titre du poste</div>
+              <input type="text" id="title-input" class="filter-input" placeholder="Data Scientist…" value="${filterTitle.replace(/"/g, '&quot;')}"/>
             </div>
           </div>
           ${enriched > 0
@@ -562,7 +670,7 @@
           <div class="kpi">
             <span class="kpi-label">Offres sélectionnées</span>
             <span class="kpi-value">${fmtNum(data.length)}</span>
-            <span class="kpi-sub">${contrats[0] ? contrats[0][1] + ' ' + contrats[0][0] : 'aucun résultat'}</span>
+            <span class="kpi-sub">${contrats[0] ? contrats[0][1] + ' ' + contratLabel(contrats[0][0]) : 'aucun résultat'}</span>
           </div>
           <div class="kpi">
             <span class="kpi-label">Entreprises</span>
@@ -650,7 +758,7 @@
               <span class="offer-title" title="${(r.intitule || '').replace(/"/g, '&quot;')}">${r.intitule || '—'}</span>
               <span class="offer-company">${r.entreprise_nom || '—'}</span>
               <span class="offer-lieu">${r.lieu_travail || '—'}</span>
-              <span class="offer-contrat">${r.type_contrat || '—'}</span>
+              <span class="offer-contrat">${contratLabel(r.type_contrat)}</span>
               <span>${badge}</span>
               <span class="offer-salaire">${fmtSalary(r)}</span>
               <span class="offer-link"><a href="https://candidat.francetravail.fr/offres/recherche/detail/${r.id}" target="_blank" rel="noopener">Voir ${arrowSvg}</a></span>
@@ -667,16 +775,12 @@
         <div class="footer-bar"></div>
       `;
 
-      document.getElementById('search-input')?.addEventListener('input', debounce(e => {
-        filterSearch = e.target.value;
+      document.getElementById('title-input')?.addEventListener('input', debounce(e => {
+        filterTitle = e.target.value;
         applyFilters();
-      }, 300));
+      }, 250));
       document.getElementById('contrat-select')?.addEventListener('change', e => {
         filterContrat = e.target.value;
-        applyFilters();
-      });
-      document.getElementById('lieu-select')?.addEventListener('change', e => {
-        filterLieu = e.target.value;
         applyFilters();
       });
       document.querySelectorAll('#exp-chips .chip').forEach(btn => {
@@ -684,6 +788,16 @@
           filterExp = btn.dataset.val;
           applyFilters();
         });
+      });
+
+      const debouncedApply = debounce(applyFilters, 250);
+      setupAutocomplete('lieu-input', 'lieu-suggestions', allLieuxList, () => filterLieu, (v) => {
+        filterLieu = v;
+        debouncedApply();
+      });
+      setupAutocomplete('company-input', 'company-suggestions', allCompanies, () => filterCompany, (v) => {
+        filterCompany = v;
+        debouncedApply();
       });
       document.getElementById('prev-btn')?.addEventListener('click', () => { offersPage--; render(filtered); });
       document.getElementById('next-btn')?.addEventListener('click', () => { offersPage++; render(filtered); });
@@ -744,7 +858,7 @@
       new Chart(ctx, {
         type: 'doughnut',
         data: {
-          labels: top.map(c => c[0]),
+          labels: top.map(c => contratLabel(c[0])),
           datasets: [{ data: top.map(c => c[1]), backgroundColor: chartColors.slice(0, top.length), borderWidth: 2, borderColor: '#ffffff' }]
         },
         options: {
