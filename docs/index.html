@@ -496,7 +496,23 @@
     };
     function contratLabel(code) {
       if (!code) return '—';
+      if (code === '__ALT__') return 'Alternance';
       return contratLabels[code] || code;
+    }
+    function effectiveContratLabel(row) {
+      if (row.is_alternance === true) return 'Alternance';
+      return contratLabel(row.type_contrat);
+    }
+
+    const IDF_DEPTS = new Set(['75', '77', '78', '91', '92', '93', '94', '95']);
+    function lieuDept(lieu) {
+      if (!lieu) return null;
+      const m = lieu.match(/(\d{2,3})\s*$/);
+      return m ? m[1] : null;
+    }
+    function isIDF(lieu) {
+      const d = lieuDept(lieu);
+      return d ? IDF_DEPTS.has(d) : false;
     }
 
     /* ================================================================
@@ -553,6 +569,7 @@
     let filterLieu    = '';
     let filterCompany = '';
     let filterAlternance = 'exclude'; // 'all' | 'exclude' | 'only'
+    let filterRegion = 'all';         // 'all' | 'idf' | 'province'
 
     /* ================================================================
        FILTERS
@@ -575,6 +592,8 @@
         if (filterExp     && r.experience_level !== filterExp)  return false;
         if (filterAlternance === 'exclude' && r.is_alternance === true)  return false;
         if (filterAlternance === 'only'    && r.is_alternance !== true)  return false;
+        if (filterRegion === 'idf'      && !isIDF(r.lieu_travail)) return false;
+        if (filterRegion === 'province' &&  isIDF(r.lieu_travail)) return false;
         return true;
       });
       offersPage = 0;
@@ -587,7 +606,12 @@
     function render(data) {
       const shell = document.getElementById('app');
 
-      const contrats          = countBy(data, 'type_contrat');
+      const contratCounts = {};
+      data.forEach(r => {
+        const k = r.is_alternance === true ? '__ALT__' : (r.type_contrat || '—');
+        contratCounts[k] = (contratCounts[k] || 0) + 1;
+      });
+      const contrats = Object.entries(contratCounts).sort((a, b) => b[1] - a[1]);
       const salaires          = data.filter(r => r.salaire_min || r.salaire_max);
       const avgSal            = salaires.length
         ? Math.round(salaires.reduce((s, r) => s + ((r.salaire_min || r.salaire_max || 0) + (r.salaire_max || r.salaire_min || 0)) / 2, 0) / salaires.length)
@@ -635,6 +659,14 @@
               <div class="chip-row" id="exp-chips">
                 ${[['', 'Tous'], ['junior', 'Junior'], ['mid', 'Mid'], ['senior', 'Senior']].map(([v, l]) =>
                   `<button class="chip${filterExp === v ? ' active' : ''}" data-val="${v}">${l}</button>`
+                ).join('')}
+              </div>
+            </div>
+            <div class="filter-group filter-group--auto">
+              <div class="filter-label">Région</div>
+              <div class="chip-row" id="region-chips">
+                ${[['all', 'Toutes'], ['idf', 'Île-de-France'], ['province', 'Province']].map(([v, l]) =>
+                  `<button class="chip${filterRegion === v ? ' active' : ''}" data-val="${v}">${l}</button>`
                 ).join('')}
               </div>
             </div>
@@ -769,7 +801,7 @@
               <span class="offer-title" title="${(r.intitule || '').replace(/"/g, '&quot;')}">${r.intitule || '—'}</span>
               <span class="offer-company">${r.entreprise_nom || '—'}</span>
               <span class="offer-lieu">${r.lieu_travail || '—'}</span>
-              <span class="offer-contrat">${contratLabel(r.type_contrat)}</span>
+              <span class="offer-contrat">${effectiveContratLabel(r)}</span>
               <span>${badge}</span>
               <span class="offer-salaire">${fmtSalary(r)}</span>
               <span class="offer-link"><a href="https://candidat.francetravail.fr/offres/recherche/detail/${r.id}" target="_blank" rel="noopener">Voir ${arrowSvg}</a></span>
@@ -803,6 +835,12 @@
       document.querySelectorAll('#alt-chips .chip').forEach(btn => {
         btn.addEventListener('click', () => {
           filterAlternance = btn.dataset.val;
+          applyFilters();
+        });
+      });
+      document.querySelectorAll('#region-chips .chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterRegion = btn.dataset.val;
           applyFilters();
         });
       });
