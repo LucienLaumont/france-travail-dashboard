@@ -17,7 +17,7 @@ MOTS_CLES = [
     "AI Engineer",
 ]
 
-PUBLIEE_DEPUIS = 1  # jours
+PUBLIEE_DEPUIS = 3  # jours
 
 
 _SALAIRE_RE = re.compile(
@@ -61,6 +61,7 @@ def extract_offre(offre):
     return {
         "id": offre.id,
         "intitule": offre.intitule,
+        "description": getattr(offre, "description", None),
         "type_contrat": getattr(offre, "typeContrat", None) or getattr(offre, "type_contrat", None),
         "lieu_travail": getattr(lieu, "libelle", None) if lieu else None,
         "entreprise_nom": getattr(entreprise, "nom", None) if entreprise else None,

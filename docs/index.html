@@ -25,6 +25,7 @@
       padding: 48px 48px 80px;
     }
 
+    /* ── Header ── */
     .header {
       display: flex;
       align-items: center;
@@ -43,6 +44,90 @@
       color: var(--fg-3);
       letter-spacing: var(--ls-upper);
       text-transform: uppercase;
+    }
+
+    /* ── Card base ── */
+    .card {
+      background: var(--bg-3);
+      border: 1px solid var(--border-warm);
+      padding: 32px;
+      box-shadow: var(--shadow-golden-sm);
+      min-width: 0;
+    }
+    .card-title {
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--fg-3);
+      margin-bottom: 20px;
+    }
+
+    /* ── Explorer / Filter card ── */
+    .explorer-card { margin-bottom: 32px; }
+    .explorer-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .explorer-header .card-title { margin-bottom: 0; }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(3, auto) 1fr;
+      gap: 20px 28px;
+      align-items: start;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+
+    .filter-label {
+      font-size: var(--fs-tiny);
+      text-transform: uppercase;
+      letter-spacing: var(--ls-upper);
+      color: var(--fg-3);
+    }
+
+    /* ── Chips ── */
+    .chip-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip {
+      padding: 6px 14px;
+      border: 1px solid var(--border-warm);
+      background: var(--bg-3);
+      color: var(--fg-2);
+      font-family: var(--font-sans);
+      font-size: var(--fs-caption);
+      cursor: pointer;
+      transition: all 140ms ease;
+    }
+    .chip:hover { border-color: var(--mistral-orange); color: var(--mistral-orange); }
+    .chip.active { background: var(--mistral-orange); border-color: var(--mistral-orange); color: #fff; }
+
+    /* ── Filter controls ── */
+    .filter-select,
+    .filter-input {
+      font-family: var(--font-sans);
+      font-size: var(--fs-caption);
+      padding: 8px 12px;
+      border: 1px solid var(--border-input);
+      background: var(--bg-3);
+      color: var(--fg-1);
+      outline: none;
+      transition: border-color 180ms ease;
+      min-width: 150px;
+    }
+    .filter-input { width: 100%; }
+    .filter-select:focus,
+    .filter-input:focus {
+      border-color: var(--mistral-orange);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .enrichment-note {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(127,99,21,0.08);
+      font-size: var(--fs-tiny);
+      color: var(--fg-3);
     }
 
     /* ── KPI row ── */
@@ -71,27 +156,16 @@
       letter-spacing: var(--ls-h2);
       line-height: 1;
     }
-    .kpi-sub {
-      font-size: var(--fs-caption);
-      color: var(--fg-3);
-    }
+    .kpi-sub { font-size: var(--fs-caption); color: var(--fg-3); }
 
-    /* ── Top charts row (line 2/3 + donut 1/3) ── */
+    /* ── Charts ── */
     .top-charts {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 16px;
       margin-bottom: 32px;
     }
-
-    .card {
-      background: var(--bg-3);
-      border: 1px solid var(--border-warm);
-      padding: 32px;
-      box-shadow: var(--shadow-golden-sm);
-      min-width: 0;
-    }
-    .card canvas { max-width: 100%; }
+    .chart-line-card { grid-column: 1 / -1; }
 
     .chart-box {
       position: relative;
@@ -103,14 +177,6 @@
       inset: 0;
       width: 100% !important;
       height: 100% !important;
-    }
-
-    .card-title {
-      font-size: var(--fs-tiny);
-      text-transform: uppercase;
-      letter-spacing: var(--ls-upper);
-      color: var(--fg-3);
-      margin-bottom: 20px;
     }
 
     /* ── Tables row ── */
@@ -176,7 +242,7 @@
 
     .offer-item {
       display: grid;
-      grid-template-columns: 1fr 180px 160px 100px 160px auto;
+      grid-template-columns: 1fr 180px 150px 90px 80px 160px auto;
       align-items: center;
       gap: 12px;
       padding: 14px 0;
@@ -232,6 +298,21 @@
     .offer-link a:hover { color: var(--mistral-flame); }
     .offer-link a svg { width: 14px; height: 14px; }
 
+    /* ── Experience badges ── */
+    .exp-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+    .exp-badge--junior { background: #dcfce7; color: #16a34a; }
+    .exp-badge--mid    { background: #dbeafe; color: #1d4ed8; }
+    .exp-badge--senior { background: #ffedd5; color: #c2410c; }
+
+    /* ── Pagination ── */
     .pagination {
       display: flex;
       align-items: center;
@@ -281,42 +362,22 @@
       font-size: var(--fs-caption);
     }
 
-    /* ── Filter bar ── */
-    .filter-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
-    }
-    .filter-bar input,
-    .filter-bar select {
-      font-family: var(--font-sans);
-      font-size: var(--fs-caption);
-      padding: 10px 14px;
-      border: 1px solid var(--border-input);
-      background: var(--bg-3);
-      color: var(--fg-1);
-      outline: none;
-      transition: border-color 180ms ease;
-    }
-    .filter-bar input:focus,
-    .filter-bar select:focus {
-      border-color: var(--mistral-orange);
-      box-shadow: 0 0 0 3px var(--accent-ring);
-    }
-    .filter-bar input { flex: 1; min-width: 200px; }
-
     /* ── Responsive ── */
     @media (max-width: 960px) {
       .shell { padding: 32px 24px 64px; }
       .kpi-row { grid-template-columns: repeat(2, 1fr); }
       .top-charts { grid-template-columns: 1fr; }
+      .chart-line-card { grid-column: auto; }
       .tables-row { grid-template-columns: 1fr; }
       .offer-item { grid-template-columns: 1fr; gap: 4px; }
+      .filter-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .filter-grid { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: 1fr 1fr; }
     }
 
-    /* ── Gradient footer bar ── */
+    /* ── Gradient footer ── */
     .footer-bar {
       height: 6px;
       background: var(--block-gradient);
@@ -334,12 +395,12 @@
 
   <script>
     /* ================================================================
-       CONFIG — replace these two placeholders before deployment
+       CONFIG
        ================================================================ */
     const SUPABASE_URL = 'https://bsqkthbemrtjfrjxdjbg.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcWt0aGJlbXJ0amZyanhkamJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0ODU4NjQsImV4cCI6MjA5MzA2MTg2NH0.7o8PihUD586UwjE__wvBvUOmED4yzyEqhOggaG4-T9c';
-    const TABLE        = 'offres';
-    const PAGE_SIZE    = 15;
+    const TABLE     = 'offres';
+    const PAGE_SIZE = 15;
 
     /* ================================================================
        DATA LAYER
@@ -371,9 +432,7 @@
       return Object.entries(m).sort((a, b) => b[1] - a[1]);
     }
 
-    function fmtNum(n) {
-      return n.toLocaleString('fr-FR');
-    }
+    function fmtNum(n) { return n.toLocaleString('fr-FR'); }
 
     function fmtSalary(row) {
       if (row.salaire_min && row.salaire_max) return `${fmtNum(row.salaire_min)} — ${fmtNum(row.salaire_max)} €`;
@@ -383,30 +442,36 @@
       return '—';
     }
 
-    function dayStr(isoStr) {
-      return isoStr ? isoStr.slice(0, 10) : null;
-    }
+    function dayStr(isoStr) { return isoStr ? isoStr.slice(0, 10) : null; }
 
     const arrowSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>`;
 
     /* ================================================================
        STATE
        ================================================================ */
-    let allData  = [];
-    let filtered = [];
+    let allData    = [];
+    let filtered   = [];
     let offersPage = 0;
+
+    let filterSearch  = '';
+    let filterContrat = '';
+    let filterExp     = '';
+    let filterLieu    = '';
 
     /* ================================================================
        FILTERS
        ================================================================ */
     function applyFilters() {
-      const q  = (document.getElementById('search-input')?.value || '').toLowerCase();
-      const ct = document.getElementById('contrat-select')?.value || '';
       filtered = allData.filter(r => {
-        if (q && !(r.intitule || '').toLowerCase().includes(q)
-               && !(r.entreprise_nom || '').toLowerCase().includes(q)
-               && !(r.lieu_travail || '').toLowerCase().includes(q)) return false;
-        if (ct && r.type_contrat !== ct) return false;
+        if (filterSearch) {
+          const q = filterSearch.toLowerCase();
+          if (!(r.intitule || '').toLowerCase().includes(q)
+           && !(r.entreprise_nom || '').toLowerCase().includes(q)
+           && !(r.lieu_travail || '').toLowerCase().includes(q)) return false;
+        }
+        if (filterContrat && r.type_contrat !== filterContrat) return false;
+        if (filterExp     && r.experience_level !== filterExp)  return false;
+        if (filterLieu    && r.lieu_travail !== filterLieu)      return false;
         return true;
       });
       offersPage = 0;
@@ -419,13 +484,12 @@
     function render(data) {
       const shell = document.getElementById('app');
 
-      const totalOffres      = data.length;
-      const contrats         = countBy(data, 'type_contrat');
-      const salaires         = data.filter(r => r.salaire_min || r.salaire_max);
-      const avgSal           = salaires.length
+      const contrats          = countBy(data, 'type_contrat');
+      const salaires          = data.filter(r => r.salaire_min || r.salaire_max);
+      const avgSal            = salaires.length
         ? Math.round(salaires.reduce((s, r) => s + ((r.salaire_min || r.salaire_max || 0) + (r.salaire_max || r.salaire_min || 0)) / 2, 0) / salaires.length)
         : null;
-      const lieux            = countBy(data, 'lieu_travail');
+      const lieux             = countBy(data, 'lieu_travail');
       const uniqueEntreprises = new Set(data.map(r => r.entreprise_nom).filter(Boolean)).size;
 
       const parJour = {};
@@ -437,13 +501,15 @@
       const maxEnt         = topEntreprises[0]?.[1] || 1;
       const maxLieu        = topLieux[0]?.[1] || 1;
 
+      const allContrats = [...new Set(allData.map(r => r.type_contrat).filter(Boolean))].sort();
+      const allLieux    = countBy(allData, 'lieu_travail').filter(([l]) => l !== '—');
+      const enriched    = allData.filter(r => r.experience_level != null).length;
+
       const sortedOffers = [...data].sort((a, b) => (b.date_creation || '').localeCompare(a.date_creation || ''));
       const pageOffers   = sortedOffers.slice(offersPage * PAGE_SIZE, (offersPage + 1) * PAGE_SIZE);
       const totalPages   = Math.ceil(sortedOffers.length / PAGE_SIZE);
 
-      const allContrats = [...new Set(allData.map(r => r.type_contrat).filter(Boolean))].sort();
-      const prevSearch  = (document.getElementById('search-input')?.value || '').replace(/"/g, '&quot;');
-      const prevContrat = document.getElementById('contrat-select')?.value || '';
+      const expLabels = { junior: 'Junior', mid: 'Mid', senior: 'Senior' };
 
       shell.innerHTML = `
         <header class="header">
@@ -454,19 +520,49 @@
           <span class="header-meta">France Travail · mis à jour ${joursSorted.length ? joursSorted[joursSorted.length - 1] : '—'}</span>
         </header>
 
-        <div class="filter-bar">
-          <input type="text" id="search-input" placeholder="Rechercher par titre, entreprise ou lieu…" value="${prevSearch}"/>
-          <select id="contrat-select">
-            <option value="">Tous les contrats</option>
-            ${allContrats.map(c => `<option value="${c}" ${c === prevContrat ? 'selected' : ''}>${c}</option>`).join('')}
-          </select>
+        <div class="card explorer-card">
+          <div class="explorer-header">
+            <div class="card-title">Explorer les offres</div>
+            <span class="kpi-sub">${fmtNum(data.length)} offre${data.length !== 1 ? 's' : ''} sélectionnée${data.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <div class="filter-label">Niveau d'expérience</div>
+              <div class="chip-row" id="exp-chips">
+                ${[['', 'Tous'], ['junior', 'Junior'], ['mid', 'Mid'], ['senior', 'Senior']].map(([v, l]) =>
+                  `<button class="chip${filterExp === v ? ' active' : ''}" data-val="${v}">${l}</button>`
+                ).join('')}
+              </div>
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Type de contrat</div>
+              <select id="contrat-select" class="filter-select">
+                <option value="">Tous</option>
+                ${allContrats.map(c => `<option value="${c}" ${c === filterContrat ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Localisation</div>
+              <select id="lieu-select" class="filter-select">
+                <option value="">Tous les lieux</option>
+                ${allLieux.slice(0, 40).map(([l]) => `<option value="${l}" ${l === filterLieu ? 'selected' : ''}>${l}</option>`).join('')}
+              </select>
+            </div>
+            <div class="filter-group">
+              <div class="filter-label">Recherche libre</div>
+              <input type="text" id="search-input" class="filter-input" placeholder="Titre, entreprise…" value="${filterSearch.replace(/"/g, '&quot;')}"/>
+            </div>
+          </div>
+          ${enriched > 0
+            ? `<div class="enrichment-note">Niveau d'expérience renseigné pour ${fmtNum(enriched)} offre${enriched !== 1 ? 's' : ''} sur ${fmtNum(allData.length)}</div>`
+            : ''}
         </div>
 
         <div class="kpi-row">
           <div class="kpi">
-            <span class="kpi-label">Offres totales</span>
-            <span class="kpi-value">${fmtNum(totalOffres)}</span>
-            <span class="kpi-sub">${contrats[0] ? contrats[0][1] + ' ' + contrats[0][0] : ''}</span>
+            <span class="kpi-label">Offres sélectionnées</span>
+            <span class="kpi-value">${fmtNum(data.length)}</span>
+            <span class="kpi-sub">${contrats[0] ? contrats[0][1] + ' ' + contrats[0][0] : 'aucun résultat'}</span>
           </div>
           <div class="kpi">
             <span class="kpi-label">Entreprises</span>
@@ -475,7 +571,7 @@
           </div>
           <div class="kpi">
             <span class="kpi-label">Salaire moyen</span>
-            <span class="kpi-value">${avgSal ? fmtNum(avgSal) + ' €' : '—'}</span>
+            <span class="kpi-value">${avgSal ? fmtNum(avgSal) + ' €' : '—'}</span>
             <span class="kpi-sub">${salaires.length} offres renseignées</span>
           </div>
           <div class="kpi">
@@ -486,13 +582,17 @@
         </div>
 
         <div class="top-charts">
-          <div class="card">
+          <div class="card chart-line-card">
             <div class="card-title">Offres collectées par jour</div>
             <div class="chart-box"><canvas id="chart-line"></canvas></div>
           </div>
           <div class="card">
             <div class="card-title">Répartition par contrat</div>
             <div class="chart-box"><canvas id="chart-pie"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Niveau d'expérience</div>
+            <div class="chart-box"><canvas id="chart-exp"></canvas></div>
           </div>
         </div>
 
@@ -540,16 +640,22 @@
             <div class="card-title">Dernières offres</div>
             <span class="kpi-sub">${fmtNum(sortedOffers.length)} résultats</span>
           </div>
-          ${pageOffers.map(r => `
+          ${pageOffers.map(r => {
+            const lvl = r.experience_level;
+            const badge = lvl && lvl !== 'unknown'
+              ? `<span class="exp-badge exp-badge--${lvl}">${expLabels[lvl] || lvl}</span>`
+              : '';
+            return `
             <div class="offer-item">
               <span class="offer-title" title="${(r.intitule || '').replace(/"/g, '&quot;')}">${r.intitule || '—'}</span>
               <span class="offer-company">${r.entreprise_nom || '—'}</span>
               <span class="offer-lieu">${r.lieu_travail || '—'}</span>
               <span class="offer-contrat">${r.type_contrat || '—'}</span>
+              <span>${badge}</span>
               <span class="offer-salaire">${fmtSalary(r)}</span>
               <span class="offer-link"><a href="https://candidat.francetravail.fr/offres/recherche/detail/${r.id}" target="_blank" rel="noopener">Voir ${arrowSvg}</a></span>
-            </div>
-          `).join('')}
+            </div>`;
+          }).join('')}
           ${totalPages > 1 ? `
           <div class="pagination">
             <button id="prev-btn" ${offersPage === 0 ? 'disabled' : ''}>← Précédent</button>
@@ -561,13 +667,30 @@
         <div class="footer-bar"></div>
       `;
 
-      document.getElementById('search-input')?.addEventListener('input', debounce(applyFilters, 300));
-      document.getElementById('contrat-select')?.addEventListener('change', applyFilters);
+      document.getElementById('search-input')?.addEventListener('input', debounce(e => {
+        filterSearch = e.target.value;
+        applyFilters();
+      }, 300));
+      document.getElementById('contrat-select')?.addEventListener('change', e => {
+        filterContrat = e.target.value;
+        applyFilters();
+      });
+      document.getElementById('lieu-select')?.addEventListener('change', e => {
+        filterLieu = e.target.value;
+        applyFilters();
+      });
+      document.querySelectorAll('#exp-chips .chip').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterExp = btn.dataset.val;
+          applyFilters();
+        });
+      });
       document.getElementById('prev-btn')?.addEventListener('click', () => { offersPage--; render(filtered); });
       document.getElementById('next-btn')?.addEventListener('click', () => { offersPage++; render(filtered); });
 
       renderLineChart(joursSorted, joursSorted.map(d => parJour[d]));
       renderPieChart(contrats);
+      renderExpChart(data);
     }
 
     /* ================================================================
@@ -622,22 +745,38 @@
         type: 'doughnut',
         data: {
           labels: top.map(c => c[0]),
-          datasets: [{
-            data: top.map(c => c[1]),
-            backgroundColor: chartColors.slice(0, top.length),
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
+          datasets: [{ data: top.map(c => c[1]), backgroundColor: chartColors.slice(0, top.length), borderWidth: 2, borderColor: '#ffffff' }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           cutout: '60%',
           plugins: {
-            legend: {
-              position: 'right',
-              labels: { font: { family: 'Arial', size: 12 }, padding: 10, usePointStyle: true, pointStyleWidth: 8, boxHeight: 8 }
-            }
+            legend: { position: 'right', labels: { font: { family: 'Arial', size: 12 }, padding: 10, usePointStyle: true, pointStyleWidth: 8, boxHeight: 8 } }
+          }
+        }
+      });
+    }
+
+    function renderExpChart(data) {
+      const ctx = document.getElementById('chart-exp');
+      if (!ctx) return;
+      const levels = ['junior', 'mid', 'senior', 'unknown'];
+      const labels = ['Junior', 'Mid', 'Senior', 'Indéfini'];
+      const counts = levels.map(l => data.filter(r => r.experience_level === l).length);
+      const colors = ['#22c55e', '#3b82f6', '#fa520f', '#d1d5db'];
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data: counts, backgroundColor: colors, borderWidth: 2, borderColor: '#ffffff' }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: { position: 'right', labels: { font: { family: 'Arial', size: 12 }, padding: 10, usePointStyle: true, pointStyleWidth: 8, boxHeight: 8 } }
           }
         }
       });
@@ -652,20 +791,21 @@
     }
 
     /* ================================================================
-       DEMO DATA (used when placeholders not replaced)
+       DEMO DATA
        ================================================================ */
     function generateDemoData() {
       const titles    = ['Data Scientist Senior', 'ML Engineer', 'Data Analyst', 'Ingénieur IA', 'Data Engineer', 'Chef de projet Data', 'Développeur Python / ML', 'Consultant Big Data', 'NLP Researcher', 'MLOps Engineer'];
       const companies = ['Société Générale', 'BNP Paribas', 'Thales', 'Capgemini', 'Atos', 'Orange', 'Dataiku', 'OVHcloud', 'Dassault Systèmes', 'Criteo', 'Mistral AI', 'Ubisoft', null];
       const lieux     = ['Paris 75', 'Lyon 69', 'Toulouse 31', 'Nantes 44', 'Bordeaux 33', 'Lille 59', 'Marseille 13', 'Rennes 35', 'Sophia Antipolis 06', 'Grenoble 38'];
       const contrats  = ['CDI', 'CDI', 'CDI', 'CDD', 'CDD', 'MIS', 'LIB', 'FRA'];
+      const expLevels = ['junior', 'mid', 'senior', 'unknown'];
       const rows = [];
       for (let i = 0; i < 187; i++) {
-        const daysAgo       = Math.floor(Math.random() * 30);
+        const daysAgo        = Math.floor(Math.random() * 30);
         const collectDaysAgo = Math.max(0, daysAgo - Math.floor(Math.random() * 2));
-        const hasSalary     = Math.random() > 0.35;
-        const salMin        = hasSalary ? 30000 + Math.floor(Math.random() * 40000) : null;
-        const salMax        = hasSalary ? salMin + 5000 + Math.floor(Math.random() * 20000) : null;
+        const hasSalary      = Math.random() > 0.35;
+        const salMin         = hasSalary ? 30000 + Math.floor(Math.random() * 40000) : null;
+        const salMax         = hasSalary ? salMin + 5000 + Math.floor(Math.random() * 20000) : null;
         const d  = new Date(); d.setDate(d.getDate() - daysAgo);
         const dc = new Date(); dc.setDate(dc.getDate() - collectDaysAgo);
         rows.push({
@@ -674,6 +814,7 @@
           type_contrat: contrats[Math.floor(Math.random() * contrats.length)],
           lieu_travail: lieux[Math.floor(Math.random() * lieux.length)],
           entreprise_nom: companies[Math.floor(Math.random() * companies.length)],
+          experience_level: expLevels[Math.floor(Math.random() * expLevels.length)],
           salaire_min: salMin,
           salaire_max: salMax,
           salaire_libelle: hasSalary ? `Annuel de ${salMin} Euros à ${salMax} Euros` : null,
