@@ -597,7 +597,18 @@
         return true;
       });
       offersPage = 0;
+      const active = document.activeElement;
+      const focusId = active && active.tagName === 'INPUT' ? active.id : null;
+      const selStart = focusId ? active.selectionStart : null;
+      const selEnd   = focusId ? active.selectionEnd   : null;
       render(filtered);
+      if (focusId) {
+        const el = document.getElementById(focusId);
+        if (el) {
+          el.focus();
+          try { el.setSelectionRange(selStart, selEnd); } catch (_) {}
+        }
+      }
     }
 
     /* ================================================================
