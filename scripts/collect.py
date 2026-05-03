@@ -17,7 +17,7 @@ MOTS_CLES = [
     "AI Engineer",
 ]
 
-PUBLIEE_DEPUIS = 1  # jours
+PUBLIEE_DEPUIS = 31  # jours
 
 
 _SALAIRE_RE = re.compile(
@@ -55,6 +55,7 @@ def extract_offre(offre):
     entreprise = getattr(offre, "entreprise", None)
     salaire = getattr(offre, "salaire", None)
     date_creation = getattr(offre, "dateCreation", None) or getattr(offre, "date_creation", None)
+    is_alternance = getattr(offre, "alternance", None)
     salaire_libelle = getattr(salaire, "libelle", None) if salaire else None
     salaire_min, salaire_max = parse_salaire(salaire_libelle)
 
@@ -65,8 +66,10 @@ def extract_offre(offre):
         "type_contrat": getattr(offre, "typeContrat", None) or getattr(offre, "type_contrat", None),
         "lieu_travail": getattr(lieu, "libelle", None) if lieu else None,
         "entreprise_nom": getattr(entreprise, "nom", None) if entreprise else None,
+        "entreprise_description": getattr(entreprise, "description", None) if entreprise else None,
         "rome_code": getattr(offre, "romeCode", None) or getattr(offre, "rome_code", None),
         "rome_libelle": getattr(offre, "romeLibelle", None) or getattr(offre, "rome_libelle", None),
+        "is_alternance" : is_alternance,
         "salaire_libelle": salaire_libelle,
         "salaire_min": salaire_min,
         "salaire_max": salaire_max,

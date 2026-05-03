@@ -7,3 +7,4 @@ venv/
 .claude
 CLAUDE.md
 DASHBOARD_BRIEF.md
+.env

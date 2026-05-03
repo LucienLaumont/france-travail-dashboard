@@ -1,19 +1,22 @@
 import json
 import os
-
 import anthropic
 from supabase import create_client
+
+from dotenv import load_dotenv
+load_dotenv()
+
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
 SUPABASE_KEY = os.environ["SUPABASE_KEY"]
 
-BATCH_SIZE = 40  # 20 → 40 : moitié moins d'appels API
+BATCH_SIZE = 40 
 MODEL = "claude-haiku-4-5-20251001"
 
-# Tarifs Haiku 4.5 en USD par million de tokens
 PRICE_INPUT_PER_MTOK  = 1.00
 PRICE_OUTPUT_PER_MTOK = 5.00
 
+# MISE À JOUR DU SYSTEM PROMPT
 SYSTEM = """\
 Tu analyses des offres d'emploi françaises. Pour chaque offre du tableau JSON fourni, détermine :
 
@@ -23,8 +26,9 @@ Tu analyses des offres d'emploi françaises. Pour chaque offre du tableau JSON f
   "senior"  → 5+ ans, ou mots-clés : senior, expert, lead, référent, architecte, management
   "unknown" → aucun indicateur clair
 
-- entreprise_nom : extraire le nom si "entreprise_nom" est vide / ne correspond pas à une entreprise et le nom est explicitement \
-écrit dans le texte ; sinon null. Ne jamais inventer.
+- entreprise_nom : extraire le nom si "entreprise_nom" est vide. \
+Regarde en priorité dans "description" et "entreprise_description". \
+Si le nom est explicitement écrit, extrais-le ; sinon null. Ne jamais inventer.
 
 Réponds UNIQUEMENT avec un tableau JSON valide dans le même ordre que l'input :
 [{"id": "...", "experience_level": "...", "entreprise_nom": "..." ou null}, ...]"""
@@ -35,7 +39,9 @@ def enrich_batch(ac: anthropic.Anthropic, offres: list[dict]) -> tuple[list[dict
         {
             "id": o["id"],
             "intitule": o["intitule"],
-            "description": (o.get("description") or "")[:800],  # 1500 → 800 chars
+            # On passe aussi la description de l'entreprise au LLM
+            "description": (o.get("description") or "")[:800],
+            "entreprise_description": (o.get("entreprise_description") or "")[:400], 
             "entreprise_nom": o.get("entreprise_nom"),
         }
         for o in offres
@@ -57,9 +63,10 @@ def main():
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
     ac = anthropic.Anthropic()
 
+    # MISE À JOUR DE LA SÉLECTION (ajout de entreprise_description)
     res = (
         supabase.table("offres")
-        .select("id, intitule, description, entreprise_nom")
+        .select("id, intitule, description, entreprise_nom, entreprise_description")
         .eq("enriched", False)
         .limit(2000)
         .execute()
@@ -83,7 +90,7 @@ def main():
             total_input  += in_tok
             total_output += out_tok
         except Exception as e:
-            print(f"  Batch {batch_num} erreur : {e}")
+            print(f"   Batch {batch_num} erreur : {e}")
             supabase.table("offres").upsert(
                 [{"id": o["id"], "experience_level": "unknown", "enriched": True} for o in batch],
                 on_conflict="id",
@@ -96,10 +103,14 @@ def main():
             orig = orig_map.get(item.get("id"))
             if not orig:
                 continue
+            
             llm_nom = item.get("entreprise_nom")
             if llm_nom and llm_nom.lower() in ("null", "none", "unknown", "inconnu", "n/a", ""):
                 llm_nom = None
+            
+            # Priorité au nom déjà présent en DB, sinon celui trouvé par le LLM
             final_nom = orig.get("entreprise_nom") or llm_nom
+
             upsert_rows.append({
                 "id": item["id"],
                 "experience_level": item.get("experience_level") or "unknown",
@@ -110,7 +121,7 @@ def main():
         if upsert_rows:
             supabase.table("offres").upsert(upsert_rows, on_conflict="id").execute()
         total += len(upsert_rows)
-        print(f"  Batch {batch_num} : {len(upsert_rows)} offres enrichies")
+        print(f"   Batch {batch_num} : {len(upsert_rows)} offres enrichies")
 
     cost_usd = (
         total_input  / 1_000_000 * PRICE_INPUT_PER_MTOK
