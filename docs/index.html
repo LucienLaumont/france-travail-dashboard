@@ -638,9 +638,8 @@
       data.forEach(r => { const d = dayStr(r.date_collecte); if (d) parJour[d] = (parJour[d] || 0) + 1; });
       const joursSorted = Object.keys(parJour).sort();
 
-      const parMois = {};
-      data.forEach(r => { const m = r.date_creation ? r.date_creation.slice(0, 7) : null; if (m) parMois[m] = (parMois[m] || 0) + 1; });
-      const moisSorted = Object.keys(parMois).sort();
+      const parMois = new Array(12).fill(0);
+      data.forEach(r => { if (r.date_creation) parMois[+r.date_creation.slice(5, 7) - 1]++; });
 
       const parJourSemaine = [0, 0, 0, 0, 0, 0, 0]; // Lun→Dim
       data.forEach(r => {
@@ -902,7 +901,8 @@
       document.getElementById('date-to-input')?.addEventListener('change',   e => { filterDateTo   = e.target.value; applyFilters(); });
 
       renderLineChart(joursSorted, joursSorted.map(d => parJour[d]));
-      renderBarMonthChart(moisSorted, moisSorted.map(m => parMois[m]));
+      const MOIS_LABELS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+      renderBarMonthChart(MOIS_LABELS, parMois);
       renderBarWeekdayChart(parJourSemaine);
       renderPieChart(contrats);
       renderExpChart(data);
