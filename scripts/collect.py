@@ -20,8 +20,9 @@ MOTS_CLES = [
 PUBLIEE_DEPUIS = 1 # jours
 
 
+# Groupe 1 : période   Groupe 2 : premier montant   Groupe 3 : second montant (optionnel)   Groupe 4 : nb_mois (optionnel)
 _SALAIRE_RE = re.compile(
-    r"(Annuel|Mensuel|Horaire) de ([\d.]+) Euros à ([\d.]+) Euros(?: sur ([\d.]+) mois)?"
+    r"(Annuel|Mensuel|Horaire) de ([\d.]+) Euros(?:\s+à\s+([\d.]+) Euros)?(?: sur ([\d.]+) mois)?"
 )
 
 
@@ -31,12 +32,16 @@ def parse_salaire(libelle):
     m = _SALAIRE_RE.search(libelle)
     if not m:
         return None, None
-    periode, raw_min, raw_max, nb_mois = m.groups()
-    sal_min, sal_max = float(raw_min), float(raw_max)
+    periode, raw_first, raw_second, nb_mois = m.groups()
+    first = float(raw_first)
+    if first == 0.0:
+        return None, None
+    second = float(raw_second) if raw_second else first  # un seul montant → min == max
+    sal_min, sal_max = min(first, second), max(first, second)
     if periode == "Mensuel":
-        nb_mois = float(nb_mois) if nb_mois else 12.0
-        sal_min *= nb_mois
-        sal_max *= nb_mois
+        factor = float(nb_mois) if nb_mois else 12.0
+        sal_min *= factor
+        sal_max *= factor
     elif periode == "Horaire":
         return None, None  # pas assez d'info pour annualiser
     return round(sal_min, 2), round(sal_max, 2)
