@@ -570,6 +570,8 @@
     let filterCompany = '';
     let filterAlternance = 'exclude'; // 'all' | 'exclude' | 'only'
     let filterRegion = 'all';         // 'all' | 'idf' | 'province'
+    let filterDateFrom = '';
+    let filterDateTo   = '';
 
     /* ================================================================
        FILTERS
@@ -594,6 +596,8 @@
         if (filterAlternance === 'only'    && r.is_alternance !== true)  return false;
         if (filterRegion === 'idf'      && !isIDF(r.lieu_travail)) return false;
         if (filterRegion === 'province' &&  isIDF(r.lieu_travail)) return false;
+        if (filterDateFrom && (!r.date_creation || r.date_creation.slice(0, 10) < filterDateFrom)) return false;
+        if (filterDateTo   && (!r.date_creation || r.date_creation.slice(0, 10) > filterDateTo))   return false;
         return true;
       });
       offersPage = 0;
@@ -633,6 +637,17 @@
       const parJour = {};
       data.forEach(r => { const d = dayStr(r.date_collecte); if (d) parJour[d] = (parJour[d] || 0) + 1; });
       const joursSorted = Object.keys(parJour).sort();
+
+      const parMois = {};
+      data.forEach(r => { const m = r.date_creation ? r.date_creation.slice(0, 7) : null; if (m) parMois[m] = (parMois[m] || 0) + 1; });
+      const moisSorted = Object.keys(parMois).sort();
+
+      const parJourSemaine = [0, 0, 0, 0, 0, 0, 0]; // Lun→Dim
+      data.forEach(r => {
+        if (!r.date_creation) return;
+        const day = new Date(r.date_creation).getDay(); // 0=Dim
+        parJourSemaine[day === 0 ? 6 : day - 1]++;
+      });
 
       const topEntreprises = countBy(data, 'entreprise_nom').slice(0, 8);
       const topLieux       = lieux.slice(0, 8);
@@ -714,6 +729,14 @@
               <div class="filter-label">Titre du poste</div>
               <input type="text" id="title-input" class="filter-input" placeholder="Data Scientist…" value="${filterTitle.replace(/"/g, '&quot;')}"/>
             </div>
+            <div class="filter-group filter-group--auto">
+              <div class="filter-label">Date de début</div>
+              <input type="date" id="date-from-input" class="filter-input" value="${filterDateFrom}" style="min-width:150px"/>
+            </div>
+            <div class="filter-group filter-group--auto">
+              <div class="filter-label">Date de fin</div>
+              <input type="date" id="date-to-input" class="filter-input" value="${filterDateTo}" style="min-width:150px"/>
+            </div>
           </div>
           ${enriched > 0
             ? `<div class="enrichment-note">Niveau d'expérience renseigné pour ${fmtNum(enriched)} offre${enriched !== 1 ? 's' : ''} sur ${fmtNum(allData.length)}</div>`
@@ -747,6 +770,14 @@
           <div class="card chart-line-card">
             <div class="card-title">Offres collectées par jour</div>
             <div class="chart-box"><canvas id="chart-line"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Offres par mois</div>
+            <div class="chart-box"><canvas id="chart-month"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Offres par jour de la semaine</div>
+            <div class="chart-box"><canvas id="chart-weekday"></canvas></div>
           </div>
           <div class="card">
             <div class="card-title">Répartition par contrat</div>
@@ -867,8 +898,12 @@
       });
       document.getElementById('prev-btn')?.addEventListener('click', () => { offersPage--; render(filtered); });
       document.getElementById('next-btn')?.addEventListener('click', () => { offersPage++; render(filtered); });
+      document.getElementById('date-from-input')?.addEventListener('change', e => { filterDateFrom = e.target.value; applyFilters(); });
+      document.getElementById('date-to-input')?.addEventListener('change',   e => { filterDateTo   = e.target.value; applyFilters(); });
 
       renderLineChart(joursSorted, joursSorted.map(d => parJour[d]));
+      renderBarMonthChart(moisSorted, moisSorted.map(m => parMois[m]));
+      renderBarWeekdayChart(parJourSemaine);
       renderPieChart(contrats);
       renderExpChart(data);
     }
@@ -912,6 +947,59 @@
               grid: { color: 'rgba(127,99,21,0.06)' },
               ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' }
             }
+          }
+        }
+      });
+    }
+
+    function renderBarMonthChart(labels, values) {
+      const ctx = document.getElementById('chart-month');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            data: values,
+            backgroundColor: 'rgba(250,82,15,0.75)',
+            borderColor: '#fa520f',
+            borderWidth: 1,
+            borderRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' } },
+            y: { beginAtZero: true, grid: { color: 'rgba(127,99,21,0.06)' }, ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' } }
+          }
+        }
+      });
+    }
+
+    function renderBarWeekdayChart(values) {
+      const ctx = document.getElementById('chart-weekday');
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+          datasets: [{
+            data: values,
+            backgroundColor: chartColors.slice(0, 7),
+            borderWidth: 1,
+            borderRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' } },
+            y: { beginAtZero: true, grid: { color: 'rgba(127,99,21,0.06)' }, ticks: { font: { family: 'Arial', size: 11 }, color: '#9c9c9c' } }
           }
         }
       });
