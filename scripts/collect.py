@@ -17,7 +17,7 @@ MOTS_CLES = [
     "AI Engineer",
 ]
 
-PUBLIEE_DEPUIS = 3 # jours
+PUBLIEE_DEPUIS = 1 # jours
 
 
 # Groupe 1 : période   Groupe 2 : premier montant   Groupe 3 : second montant (optionnel)   Groupe 4 : nb_mois (optionnel)
