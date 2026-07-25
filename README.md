@@ -6,7 +6,7 @@ Dashboard de veille automatisé sur les offres d'emploi **Data / IA** en France.
 
 ---
 
-## Ce que le dashboard affiche
+## Ce que le dashboard affiche :
 
 | Bloc | Description |
 |---|---|
